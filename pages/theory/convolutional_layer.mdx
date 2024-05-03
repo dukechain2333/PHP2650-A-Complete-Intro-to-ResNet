@@ -1,0 +1,68 @@
+import Image from 'next/image'
+
+# Convolutional Layer
+
+A convolutional layer is a core component of a convolutional neural network (CNN) that extracts features from images.
+It's made up of a set of filters, or kernels, that are smaller than the image. Each filter convolves with the image to create an activation map,
+and the layer's main function is to apply a convolution operation to the input, passing the result to the next layer.
+
+## What is Convolution?
+
+Convolution is a mathematical operation that combines two sets of information. In the context of CNNs, the operation involves combining an image matrix and a filter (also called a kernel) matrix.
+The filter is smaller than the image, and it is applied to each part of the image in a sliding window fashion. The filter is multiplied with the image values at each position,
+and the results are summed to produce a single output value in the activation map.
+
+## Convolutional Layer Architecture
+
+### Convolution Process (Cross-Correlation)
+
+The picture belows shows how a convolution process works. We can see that three components are involved: the input image, the kernel, and the output feature map.
+
+<Image src="/conv.png" alt="conv" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+The heart of a convolutional layer is the kernel, which is a small matrix that slides over the input image to extract features.
+The kernel is applied to the input image using a convolution operation, which involves element-wise multiplication of the kernel and the input image, followed by summing the results to produce a single output value in the feature map.
+
+<Image src="/conv-kernel.gif" alt="kernel working" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+### Padding
+
+Padding is a technique used to preserve the spatial dimensions of the input image when applying convolutional operations. It involves adding extra rows and columns of zeros around the input image.
+Padding can be used to control the size of the output feature map and to prevent information loss at the edges of the image.
+
+<Image src="/conv-pad.svg" alt="padding" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+### Stride
+
+Stride is a parameter that determines the step size of the kernel as it slides over the input image. A stride of 1 means the kernel moves one pixel at a time, while a stride of 2 means the kernel moves two pixels at a time.
+
+<Image src="/conv-stride.svg" alt="stride" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+### Calculating Output Size
+
+The output size of a convolutional layer can be calculated using the following formula, assuming the width and height of the input image are the same:
+
+$$
+\text{Output Size} = \frac{(\text{Input Size} - \text{Kernel Size} + 2 \times \text{Padding})}{\text{Stride}} + 1
+$$
+
