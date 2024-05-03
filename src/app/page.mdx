@@ -1,45 +1,36 @@
-import { Guides } from '@/components/Guides'
-import { Resources } from '@/components/Resources'
-import { HeroPattern } from '@/components/HeroPattern'
+import {Guides} from '@/components/Guides'
+import {Resources} from '@/components/Resources'
+import {HeroPattern} from '@/components/HeroPattern'
 
 export const metadata = {
-  title: 'API Documentation',
-  description:
-    'Learn everything there is to know about the Protocol API and integrate Protocol into your product.',
+    title: 'PHP2650 Final Project: A Complete Introduction to ResNet',
+    description:
+        'Conducted by William Qian and Dingxuan Zhang, this website will provide a complete introduction to ResNet, a deep learning model that has been widely used in computer vision tasks.',
 }
 
 export const sections = [
-  { title: 'Guides', id: 'guides' },
-  { title: 'Resources', id: 'resources' },
+    {title: 'Project Structure', id: 'project-structure'},
+    {title: 'Guides', id: 'guides'},
+    {title: 'Authors', id: 'meet-our-authors'},
 ]
 
-<HeroPattern />
+<HeroPattern/>
 
-# API Documentation
+# A Complete Introduction to ResNet
 
-Use the Protocol API to access contacts, conversations, group messages, and more and seamlessly integrate your product into the workflows of dozens of devoted Protocol users. {{ className: 'lead' }}
+This is the final project of PHP 2650 Statistical Learning and Big Data. This project aims to provide a complete introduction to ResNet,
+a deep learning model that has been widely used in computer vision tasks. It was conducted by [William Qian](https://github.com/dukechain2333) and [Dingxuan Zhang](https://github.com/dz6190918).{{ className: 'lead' }}
 
-<div className="not-prose mb-16 mt-6 flex gap-3">
-  <Button href="/quickstart" arrow="right">
-    <>Quickstart</>
-  </Button>
-  <Button href="/sdks" variant="outline">
-    <>Explore SDKs</>
-  </Button>
-</div>
+## Project Structure
 
-## Greetings to William and Dean
+As you can see in the navigation bar, this project is divided into several sections.
 
-## Getting started {{ anchor: false }}
+The first section is the **Misc** section, basically it is the section say hello to you. In this section, we will provide a brief introduction to this project itself rather than the content of ResNet. Of course, it can be considered as a home page of this project. Reference page is also included in this section.
 
-To get started, create a new application in your [developer settings](#), then read about how to make requests for the resources you need to access using our HTTP APIs or dedicated client SDKs. When your integration is ready to go live, publish it to our [integrations directory](#) to reach the Protocol community. {{ className: 'lead' }}
+The second section is the **Theory** section, in this section, we will provide a detailed introduction to the theory of ResNet. We will explain the concepts that involved in ResNet, such as the structure of ResNet, the bottleneck structure, the residual block, and the skip connection.
 
-<div className="not-prose">
-  <Button href="/sdks" variant="text" arrow="right">
-    <>Get your API key</>
-  </Button>
-</div>
+The third section is the **Implementation** section, in this section, we will provide a detailed introduction to the implementation of ResNet. We will explain how to implement ResNet using PyTorch.
 
-<Guides />
+<Guides/>
 
-<Resources />
+<Resources/>
