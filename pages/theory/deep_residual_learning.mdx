@@ -1,0 +1,48 @@
+import Image from 'next/image'
+
+# Deep Residual Learning
+
+In order to solve the [accuracy degradation](/theory/accuracy_degradation) problem, the authors introduced a deep residual learning framework.
+
+## Residual Learning
+
+To start with, we would hypothesize that multiple nonlinear layers can asymptotically approximate complicated functions, then it is equivalent to hypothesize that they can asymptotically approximate the residual functions.
+
+Let us consider $\mathcal{H}(x)$ as an underlying mapping to be fit by a few stacked layers, with $x$ denoting the inputs to the first of these layers, then the residual equations can be defined as:
+$$
+\mathcal{F}(x) := \mathcal{H}(x) - x
+$$
+assuming that the input and output are of the same dimensions. The original function thus becomes:
+$$
+\mathcal{H}(x) = \mathcal{F}(x) + x
+$$
+
+This rephrasing is inspired by the surprising aspects of the  [accuracy degradation](/theory/accuracy_degradation) issue. If additional layers are designed as identity mappings,
+a deeper model should not have a higher training error than a shallower one. However, the degradation issue implies that solvers may struggle to replicate identity mappings using multiple nonlinear layers.
+With the introduction of residual learning, if identity mappings are ideal, solvers could potentially steer the weights of these nonlinear layers towards zero, thereby closely approximating identity mappings.
+
+## Identity Mapping by Shortcuts
+
+The authors introduced a shortcut connection that skips one or more layers. The shortcut connections are used to perform identity mapping, and the residual block is defined as:
+$$
+y = \mathcal{F}(x, \{W_i\}) + x
+$$
+Here $x$ and $y$ are the input and output vectors of the layers considered. The function $\mathcal{F}(x, \{W_i\})$ represents the residual mapping to be learned. A picture of the residual block is shown below:
+
+<Image src="/residual_block.gif" alt="residual-block" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+In this shown example, the block has two layers. $\mathcal{F} = W_2\sigma(W_1x)$ in which $\sigma$ denotes the ReLU activation function. The operation $\mathcal{F} + x$ is performed
+by a shortcut connection and element-wise addition.
+
+Note that, this shortcut will not add any extra parameter nor computational complexity. In this case, the dimensions of $x$ and $\mathcal{F}$ must be equal for the addition operation to be performed.
+
+However, when the dimensions of $x$ and $\mathcal{F}$ are not equal, the authors introduced a projection shortcut to match the dimensions. The projection shortcut is defined as:
+$$
+y = \mathcal{F}(x, \{W_i\}) + W_sx
+$$
+where $W_s$ is a projection matrix.
