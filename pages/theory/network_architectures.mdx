@@ -1,0 +1,36 @@
+import Image from 'next/image'
+
+# Network Architecture
+
+In this picture, in total 3 models are build.
+
+### Model 1 (Left)
+
+This is a very common VGG-19 model. It has 19 layers, which are divided into 16 convolutional layers and 3 fully connected layers. And this model is mainly used for reference.
+
+### Model 2 (Middle)
+
+This model is simply stacking layers together. Let's call it **Plain Network**. The convolutional layers mostly have 3×3 filters and follow two simple design rules:
+- for the same output feature map size, the layers have the same number of filters; and
+- if the feature map size is halved, the number of filters is doubled so as to preserve the time complexity per layer.
+
+We perform down sampling directly by convolutional layers that have a stride of 2. The network ends with a global average pooling layer and a 1000-way fully-connected layer with softmax. The total number of weighted layers is 34.
+
+### Model 3 (Right)
+
+Based on Model 2, we add shortcut connections. The identity shortcuts can be directly used when the input and output are of the same dimensions (solid line shortcuts in the picture). When the dimensions increase (dotted line shortcuts in the picture),
+we consider two options:
+- The shortcut still performs identity mapping, with extra zero entries padded for increasing dimensions. This option introduces no extra parameter;
+- The projection shortcut is used to match dimensions (done by 1×1 convolutions).
+
+For both options, when the shortcuts go across feature maps of two sizes, they are performed with a stride of 2.
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/network_arch.png" alt="network-arch" width={500} height={800}/>
+</div>
