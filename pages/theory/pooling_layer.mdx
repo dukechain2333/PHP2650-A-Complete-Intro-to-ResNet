@@ -1,0 +1,30 @@
+import Image from 'next/image'
+
+# Pooling Layer
+
+Pooling layers are used to reduce the spatial dimensions of the input volume. This is done to reduce the computational complexity of the network and to control overfitting.
+Pooling layers are usually placed after convolutional layers. There are two types of pooling layers:
+
+## Max Pooling
+
+Max pooling is the most common type of pooling layer. It works by sliding a window over the input volume and taking the maximum value in each window.
+The size of the window and the stride can be adjusted to control the size of the output volume. Max pooling is used to reduce the spatial dimensions of the input volume while preserving the most important features.
+
+<Image src="/max-pool.png" alt="maxpool" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+## Average Pooling
+
+Average pooling works in a similar way to max pooling, but instead of taking the maximum value in each window, it takes the average value.
+Average pooling is less common than max pooling, but it can be useful in some cases.
+
+<Image src="/average-pool.png" alt="averagepool" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
