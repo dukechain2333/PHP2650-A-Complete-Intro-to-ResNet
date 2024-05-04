@@ -2,5 +2,6 @@
   "convolutional_layer": "Convolutional Layer",
   "pooling_layer": "Pooling Layer",
   "accuracy_degradation": "Accuracy Degradation",
-  "deep_residual_learning": "Deep Residual Learning"
+  "deep_residual_learning": "Deep Residual Learning",
+  "network_architectures": "Network Architectures"
 }
