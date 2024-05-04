@@ -1,0 +1,23 @@
+import Image from 'next/image'
+
+# Accuracy Degradation
+
+## What is accuracy degradation?
+
+The concept of accuracy degradation was mentioned at the very beginning of ["Deep Residual Learning for Image Recognition"](https://ieeexplore.ieee.org/document/7780459).
+The authors start with a simple question: "Is learning better networks as easy as stacking more layers?", and state that when deeper networks are able to start converging, a degradation problem has been exposed: with the network depth increasing, accuracy gets saturated and then degrades rapidly.
+
+<Image src="/acc_degrade.gif" alt="acc-degrade" width={800} height={500} style={
+    {
+        marginTop: 10,
+        marginBottom: 10
+    }
+}/>
+
+Surprisingly, this deterioration is not due to overfitting, and incorporating additional layers into an already deep model results in increased training errors.
+This decline in training accuracy suggests that not all systems are equally easy to optimize.
+
+## Why does this happen?
+
+A simple explanation for this phenomenon is that when model A (say it has n layers) has reached the best accuracy, adding more layers to it (model B) should be able to achieve the same accuracy as model A,
+which means level after n are all identity mappings. However, that is a very hard constraint to satisfy, thus causing accuracy degradation.

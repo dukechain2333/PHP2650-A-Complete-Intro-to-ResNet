@@ -1,4 +1,5 @@
 {
   "convolutional_layer": "Convolutional Layer",
-  "pooling_layer": "Pooling Layer"
+  "pooling_layer": "Pooling Layer",
+  "accuracy_degradation": "Accuracy Degradation"
 }
