@@ -1,0 +1,59 @@
+import Image from 'next/image'
+
+# Plain Network vs. Residual Network
+
+## ImageNet Classification
+
+ImageNet is a dataset that consists over 1000 classes. The models are trained on the 1.28 million training images, and evaluated on the 50k validation images.
+
+## Plain Network
+
+The plain network is a simple stack of convolutional layers without residual connections. The detail of the plain network is as follows:
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/plain-network.png" alt="plain-network" width={1000} height={800}/>
+</div>
+
+The authors first evaluated 18-layer and 34-layer plain nets. The results are as follows:
+
+| Model | Top-1 Error |
+| :---: | :---: |
+| 18-layer plain net | 27.94 |
+| 34-layer plain net | 28.54 |
+
+We can see that the 34-layer plain net has a higher error rate than the 18-layer plain net.
+
+## Residual Network
+
+The architecture of the residual network is basically the same as the plain network, but with residual connections added to each pair of 3×3 filters.
+Just like what shown in the [previous picture](/theory/network_architecture). The results are as follows:
+
+| Model | Top-1 Error |
+| :---: | :---: |
+| 18-layer ResNet | 27.88 |
+| 34-layer ResNet | 25.03 |
+
+We can see that the 34-layer ResNet has a lower error rate than the 18-layer ResNet. This is because the residual connections help the network to learn the identity function, which makes the network easier to optimize.
+
+## Comparison
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/plain-res-compare.png" alt="plain-res-compare" width={1000} height={800}/>
+</div>
+
+In the picture above, Thin curves denote training error, and bold curves denote validation error of the center crops.
+We can easily find that for the plain network, the error of 34-layer network is higher than the 18-layer network.
+However, for the residual network, the error of 34-layer network is lower than the 18-layer network. And eventually, ResNet has a lower error on the 34-layer network than the plain network,
+which suggests that the accuracy of the network can be improved by adding residual connections.
