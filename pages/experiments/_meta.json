@@ -1,3 +1,4 @@
 {
-  "plain_residual": "Plain Network vs. Residual Network"
+  "plain_residual": "Plain Network vs. Residual Network",
+  "identity_projection": "Identity vs. Projection Shortcuts"
 }

@@ -1,0 +1,35 @@
+import Image from 'next/image'
+
+# Identity vs. Projection Shortcuts
+
+We did discuss that there are actucally two kinds of shortcuts in ResNet. The first kind is the identity shortcut, which is used when the input and output dimensions are the same.
+The second kind is the projection shortcut, which is used when the input and output dimensions are different.
+
+In this part, we will dive deeper into the difference between the shortcuts.
+
+- **Zero Padding Shortcuts**: used for increasing dimensions, and all shortcuts are parameter-free.
+- **Dimensions Increase + Identity Shortcuts**: projection shortcuts are used for increasing dimensions, and other shortcuts are identity.
+- **All Projections Shortcuts**: all shortcuts are projections, and the identity shortcut is not used.
+
+## Comparison
+
+Obviously, all the ResNet performs better than the plain network.
+
+We can see from the table that **Dimensions Increase + Identity Shortcuts** performs better than the **Zero Padding Shortcuts**.
+This may be credited to **Zero Padding Shortcuts** has no residual learning.
+
+And the **All Projections Shortcuts** performs the best. This is because it literally has more parameters than its competitors.
+
+Note that although the **All Projections Shortcuts** has the best performance, it is not the most efficient one since it
+added more parameters to the model and only performs slightly better than the **Dimensions Increase + Identity Shortcuts**.
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/identity-projection.png" alt="identity-projection" width={1000} height={800}/>
+</div>
+
