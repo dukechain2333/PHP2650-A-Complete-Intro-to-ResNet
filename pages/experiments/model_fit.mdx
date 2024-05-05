@@ -8,125 +8,152 @@ import Image from 'next/image'
 We will use the CIFAR-10 dataset for this example. The CIFAR-10 dataset consists of 60,000 32x32 color images in 10 classes,
 with 6,000 images per class. There are 50,000 training images and 10,000 test images. This dataset is included in both Pytorch and Tensorflow.
 
-In order to better process, we need to define a transformation that will be applied to the images.
-In this case, we will resize the images to 256x256, center crop them to 224x224, and convert them to tensors, which are the required input format for most deep learning models.
+In the paper, The image is resized with its shorter side randomly sampled in [256, 480] for scale augmentation.
+A 224×224 crop is randomly sampled from an image or its horizontal flip, with the per-pixel mean subtracted.
+The standard color augmentation in is used.
+
+To resize the images, we will define a custom transformation that will randomly resize the images to a size between 256 and 480.
+The class `RandomResize` is inherited from the `transforms.Resize` class. And we use pipelined transformations to resize, crop, flip, and normalize the images.
+Note that the mean and std of the CIFAR-10 dataset are [0.4914, 0.4822, 0.4465] and [1.0, 1.0, 1.0], respectively.
 
 Since we are using Google Colab, the batch size is set to 256. The batch size is the number of images that will be processed in each iteration.
 
-<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
-    <Tabs.Tab>
-        ```python
-        transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-        ])
+```python
+class RandomResize(transforms.Resize):
+    def __init__(self, min_size=256, max_size=480, interpolation=transforms.InterpolationMode.BILINEAR):
+        super().__init__(size=1)
+        self.min_size = min_size
+        self.max_size = max_size
+        self.interpolation = interpolation
 
-        train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size=256, shuffle=True)
+    def forward(self, img):
+        size = torch.randint(self.min_size, self.max_size + 1, (1,)).item()
+        short, long = min(img.size[1], img.size[0]), max(img.size[1], img.size[0])
+        if short == img.size[0]:
+            ow, oh = size, int(size * long / short)
+        else:
+            ow, oh = int(size * long / short), size
+        return F.resize(img, (oh, ow), self.interpolation)
 
-        test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
-        test_loader = torch.utils.data.DataLoader(test_set, batch_size=256, shuffle=False)
-        ```
-    </Tabs.Tab>
-</Tabs>
+mean = [0.4914, 0.4822, 0.4465]
+std = [1.0, 1.0, 1.0]
+
+transform = transforms.Compose([
+    RandomResize(),
+    transforms.RandomCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std)
+])
+
+train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=256, shuffle=True)
+
+test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=256, shuffle=False)
+```
 
 ## Training the Model
 
 No matter which framework you use, the process of training a model is similar. You need to define a loss function, an optimizer, and a device to run the model on.
 Then, you need to iterate over the dataset, calculate the loss, back-propagate the gradients, and update the weights.
 
-In our case here, we are using the CrossEntropyLoss as the loss function and the SGD optimizer. The epoch is set to 10, which means
-the whole dataset will be passed through the model 10 times.
+In our case here, we are using the CrossEntropyLoss as the loss function and the Adam optimizer. The epoch is set to 100, which means
+the whole dataset will be passed through the model 100 times.
 
 And a good practice is to document the training process by printing the loss at each epoch.
 
-<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
-    <Tabs.Tab>
-        ```python
-        criterion = torch.nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        model.to(device)
+```python
+criterion = torch.nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
-        for epoch in range(10):
-            model.train()
-            running_loss = 0.0
-            for inputs, labels in train_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
+train_losses = []
+val_losses = []
 
-                optimizer.zero_grad()
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
-                loss.backward()
-                optimizer.step()
+for epoch in range(100):
+    model.train()
+    train_loss = 0.0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
 
-                running_loss += loss.item()
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
 
-            print(f'Epoch {epoch+1}, Loss: {running_loss / len(train_loader)}')
-        ```
-    </Tabs.Tab>
-</Tabs>
+        train_loss += loss.item()
+
+    avg_train_loss = train_loss / len(train_loader)
+    train_losses.append(avg_train_loss)
+
+    model.eval()
+    val_loss = 0.0
+    with torch.no_grad():
+        for inputs, labels in test_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+
+    avg_val_loss = val_loss / len(test_loader)
+    val_losses.append(avg_val_loss)
+
+    print(f'Epoch {epoch+1}, Training Loss: {avg_train_loss}, Validation Loss: {avg_val_loss}')
+```
 
 ## Evaluating the Model
 
 This step is used to evaluate the model's performance on the test dataset. The model is set to evaluation mode, and the gradients are turned off.
 Then, the model is passed through the test dataset, and the accuracy is calculated.
 
-<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
-    <Tabs.Tab>
-        ```python
-        model.eval()
-        correct = 0
-        total = 0
-        with torch.no_grad():
-            for inputs, labels in test_loader:
-                inputs, labels = inputs.to(device), labels.to(device)
-                outputs = model(inputs)
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
+```python
+model.eval()
+correct = 0
+total = 0
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        outputs = model(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
 
-        print(f'Accuracy: {100 * correct / total}%')
-        ```
-
-        ```console
-        Accuracy: 75.54%
-        ```
-    </Tabs.Tab>
-</Tabs>
+print(f'Accuracy: {100 * correct / total}%')
+```
 
 ## Show Results
 
 Although this step is not necessary, it is always good to visualize the results to better understand the model's performance.
 In our case, four images are selected from the test dataset, and the model's prediction is compared with the actual label.
 
-<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
-    <Tabs.Tab>
-        ```python
-        images, labels = next(iter(test_loader))
-        images = images[:4]
-        labels = labels[:4]
+```python
+images, labels = next(iter(test_loader))
+images = images[:4]
+labels = labels[:4]
 
-        images = images.to(device)
-        labels = labels.to(device)
+images = images.to(device)
+labels = labels.to(device)
 
-        model.eval()
-        with torch.no_grad():
-            outputs = model(images)
+model.eval()
+with torch.no_grad():
+    outputs = model(images)
 
-        predicted_labels = torch.argmax(outputs, dim=1)
+predicted_labels = torch.argmax(outputs, dim=1)
 
-        fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+fig, axs = plt.subplots(2, 2, figsize=(10, 10))
 
-        for i in range(len(images)):
-            axs[i // 2, i % 2].imshow(images[i].cpu().numpy().transpose((1, 2, 0)))
-            axs[i // 2, i % 2].set_title(f"Predicted: {predicted_labels[i].item()}, Actual: {labels[i].item()}")
+for i in range(len(images)):
+    axs[i // 2, i % 2].imshow(images[i].cpu().numpy().transpose((1, 2, 0)))
+    axs[i // 2, i % 2].set_title(f"Predicted: {predicted_labels[i].item()}, Actual: {labels[i].item()}")
 
-        plt.show()
-        ```
+plt.show()
+```
 
-        <div style={{
+<div style={{
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -135,5 +162,4 @@ In our case, four images are selected from the test dataset, and the model's pre
         }}>
             <Image src="/pytorch-result.png" alt="pytorch-result" width={1000} height={800}/>
         </div>
-    </Tabs.Tab>
-</Tabs>
+
