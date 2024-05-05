@@ -1,0 +1,161 @@
+import Image from 'next/image'
+import { Tabs } from 'nextra/components'
+
+# Implementation of ResNet
+
+In this part, we will build a ResNet model from scratch using PyTorch and TensorFlow. We will implement the ResNet-50 architecture.
+
+
+## Packages
+
+First, let's import the necessary libraries.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        import torch
+        import torch.nn as nn
+        from torch.nn import functional as F
+        from torchvision import datasets, transforms, utils
+
+        import matplotlib.pyplot as plt
+        import numpy as np
+        ```
+    </Tabs.Tab>
+</Tabs>
+
+## Bottleneck Block
+
+In order to build the ResNet model more easily, we will first implement the Bottleneck block. The Bottleneck block here contains
+4 parameters: `in_channels`, `out_channels`, `stride`, and `downsample`.
+
+`in_channels` is the number of input channels into this bottleneck block, `out_channels` is the number of output channels,
+`stride` is the stride of the second convolutional layer.
+
+`downsample` is used when the input if the number of input channels is not equal to the number of output channels. We can
+tell from our code that it is used before the final step of the forward propagation in the bottleneck architecture. If the
+input channels is equal to the output channels, then it will be an identity mapping, the input will be added to the output.
+However, when the input channels is not equal to the output channels, we need to use the downsample to match the dimensions, and
+add the transformed input to the output.
+
+Note that the `expansion` parameter is set to 4, which means that the output channels will be 4 times the input channels. We
+found that with this parameter, the model can be easily transformed into different ResNet architectures. For instance, if we
+set the `expansion` to 2, then the output channels will be 2 times the input channels, and the model will be a ResNet-34 model.
+In our case, we set the `expansion` to 4, so the model will be a ResNet-50 model.
+
+And a batch normalization layer is added after each convolutional layer, and a ReLU activation function is added after each batch.
+By doing this, we can prevent the vanishing gradient problem and speed up the training process.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        class Bottleneck(nn.Module):
+            expansion = 4
+
+            def __init__(self, in_channels, out_channels, stride=1, downsample=None):
+                super(Bottleneck, self).__init__()
+                self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=1, bias=False)
+                self.bn1 = nn.BatchNorm2d(out_channels)
+                self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=stride, padding=1, bias=False)
+                self.bn2 = nn.BatchNorm2d(out_channels)
+                self.conv3 = nn.Conv2d(out_channels, out_channels * self.expansion, kernel_size=1, bias=False)
+                self.bn3 = nn.BatchNorm2d(out_channels * self.expansion)
+                self.relu = nn.ReLU(inplace=True)
+                self.downsample = downsample
+
+            def forward(self, x):
+                identity = x
+
+                out = self.conv1(x)
+                out = self.bn1(out)
+                out = self.relu(out)
+
+                out = self.conv2(out)
+                out = self.bn2(out)
+                out = self.relu(out)
+
+                out = self.conv3(out)
+                out = self.bn3(out)
+
+                if self.downsample is not None:
+                    identity = self.downsample(x)
+
+                out += identity
+                out = self.relu(out)
+
+                return out
+        ```
+    </Tabs.Tab>
+</Tabs>
+
+## ResNet Model
+
+With the Bottleneck block implemented, we can now build the ResNet model. The ResNet model consists of 4 layers, each layer
+contains several Bottleneck blocks. The number of blocks in each layer is specified by the `layers` parameter. The `num_classes`
+parameter is the number of classes in the dataset, in our case, it is 10 since we will use CIFAR-10 dataset.
+
+Basically, the ResNet model is built by stacking multiple Bottleneck blocks, and can be divided into 4 layers.
+
+The `_make_layer` function is used to create a layer with multiple Bottleneck blocks. The `if` statement is used to check if the
+input channels is not equal to the output channels, if so, we need to use the downsample to match the dimensions, an extra
+convolutional layer is added to the downsample to match the dimensions.
+
+In the end, we give the 4 layers stacks of bottleneck blocks of `[3, 4, 6, 3]` to the ResNet model, which is the configuration of ResNet-50.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        class ResNet(nn.Module):
+            def __init__(self, block, layers, num_classes):
+                super(ResNet, self).__init__()
+                self.in_channels = 64
+                self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
+                self.bn1 = nn.BatchNorm2d(64)
+                self.relu = nn.ReLU(inplace=True)
+                self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+                self.layer1 = self._make_layer(block, 64, layers[0])
+                self.layer2 = self._make_layer(block, 128, layers[1], stride=2)
+                self.layer3 = self._make_layer(block, 256, layers[2], stride=2)
+                self.layer4 = self._make_layer(block, 512, layers[3], stride=2)
+                self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+                self.fc = nn.Linear(512 * block.expansion, num_classes)
+
+            def _make_layer(self, block, out_channels, blocks, stride=1):
+                downsample = None
+                if stride != 1 or self.in_channels != out_channels * block.expansion:
+                    downsample = nn.Sequential(
+                        nn.Conv2d(self.in_channels, out_channels * block.expansion, kernel_size=1, stride=stride, bias=False),
+                        nn.BatchNorm2d(out_channels * block.expansion),
+                    )
+
+                layers = []
+                layers.append(block(self.in_channels, out_channels, stride, downsample))
+                self.in_channels = out_channels * block.expansion
+                for _ in range(1, blocks):
+                    layers.append(block(self.in_channels, out_channels))
+
+                return nn.Sequential(*layers)
+
+            def forward(self, x):
+                x = self.conv1(x)
+                x = self.bn1(x)
+                x = self.relu(x)
+                x = self.maxpool(x)
+
+                x = self.layer1(x)
+                x = self.layer2(x)
+                x = self.layer3(x)
+                x = self.layer4(x)
+
+                x = self.avgpool(x)
+                x = torch.flatten(x, 1)
+                x = self.fc(x)
+                return x
+
+        def resnet50():
+            return ResNet(Bottleneck, [3, 4, 6, 3], num_classes=10)
+
+        model = resnet50()
+        ```
+    </Tabs.Tab>
+</Tabs>

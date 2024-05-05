@@ -1,5 +1,7 @@
 {
   "plain_residual": "Plain Network vs. Residual Network",
   "identity_projection": "Identity vs. Projection Shortcuts",
-  "bottleneck": "Bottleneck Architectures"
+  "bottleneck": "Bottleneck Architectures",
+  "implementation": "Implementation",
+  "model_fit": "Model Fitting and Evaluation"
 }

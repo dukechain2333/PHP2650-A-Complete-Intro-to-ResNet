@@ -1,0 +1,139 @@
+import { Tabs } from 'nextra/components'
+import Image from 'next/image'
+
+# Model Fitting and Evaluation
+
+## Preparing the Data
+
+We will use the CIFAR-10 dataset for this example. The CIFAR-10 dataset consists of 60,000 32x32 color images in 10 classes,
+with 6,000 images per class. There are 50,000 training images and 10,000 test images. This dataset is included in both Pytorch and Tensorflow.
+
+In order to better process, we need to define a transformation that will be applied to the images.
+In this case, we will resize the images to 256x256, center crop them to 224x224, and convert them to tensors, which are the required input format for most deep learning models.
+
+Since we are using Google Colab, the batch size is set to 256. The batch size is the number of images that will be processed in each iteration.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        transform = transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+        ])
+
+        train_set = datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+        train_loader = torch.utils.data.DataLoader(train_set, batch_size=256, shuffle=True)
+
+        test_set = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+        test_loader = torch.utils.data.DataLoader(test_set, batch_size=256, shuffle=False)
+        ```
+    </Tabs.Tab>
+</Tabs>
+
+## Training the Model
+
+No matter which framework you use, the process of training a model is similar. You need to define a loss function, an optimizer, and a device to run the model on.
+Then, you need to iterate over the dataset, calculate the loss, back-propagate the gradients, and update the weights.
+
+In our case here, we are using the CrossEntropyLoss as the loss function and the SGD optimizer. The epoch is set to 10, which means
+the whole dataset will be passed through the model 10 times.
+
+And a good practice is to document the training process by printing the loss at each epoch.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        criterion = torch.nn.CrossEntropyLoss()
+        optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        model.to(device)
+
+        for epoch in range(10):
+            model.train()
+            running_loss = 0.0
+            for inputs, labels in train_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+
+                optimizer.zero_grad()
+                outputs = model(inputs)
+                loss = criterion(outputs, labels)
+                loss.backward()
+                optimizer.step()
+
+                running_loss += loss.item()
+
+            print(f'Epoch {epoch+1}, Loss: {running_loss / len(train_loader)}')
+        ```
+    </Tabs.Tab>
+</Tabs>
+
+## Evaluating the Model
+
+This step is used to evaluate the model's performance on the test dataset. The model is set to evaluation mode, and the gradients are turned off.
+Then, the model is passed through the test dataset, and the accuracy is calculated.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        model.eval()
+        correct = 0
+        total = 0
+        with torch.no_grad():
+            for inputs, labels in test_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
+        print(f'Accuracy: {100 * correct / total}%')
+        ```
+
+        ```console
+        Accuracy: 75.54%
+        ```
+    </Tabs.Tab>
+</Tabs>
+
+## Show Results
+
+Although this step is not necessary, it is always good to visualize the results to better understand the model's performance.
+In our case, four images are selected from the test dataset, and the model's prediction is compared with the actual label.
+
+<Tabs items={['Pytorch', 'Tensorflow']} defaultIndex="0">
+    <Tabs.Tab>
+        ```python
+        images, labels = next(iter(test_loader))
+        images = images[:4]
+        labels = labels[:4]
+
+        images = images.to(device)
+        labels = labels.to(device)
+
+        model.eval()
+        with torch.no_grad():
+            outputs = model(images)
+
+        predicted_labels = torch.argmax(outputs, dim=1)
+
+        fig, axs = plt.subplots(2, 2, figsize=(10, 10))
+
+        for i in range(len(images)):
+            axs[i // 2, i % 2].imshow(images[i].cpu().numpy().transpose((1, 2, 0)))
+            axs[i // 2, i % 2].set_title(f"Predicted: {predicted_labels[i].item()}, Actual: {labels[i].item()}")
+
+        plt.show()
+        ```
+
+        <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 10,
+            marginBottom: 10
+        }}>
+            <Image src="/pytorch-result.png" alt="pytorch-result" width={1000} height={800}/>
+        </div>
+    </Tabs.Tab>
+</Tabs>
