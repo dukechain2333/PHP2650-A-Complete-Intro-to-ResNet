@@ -1,4 +1,5 @@
 {
   "plain_residual": "Plain Network vs. Residual Network",
-  "identity_projection": "Identity vs. Projection Shortcuts"
+  "identity_projection": "Identity vs. Projection Shortcuts",
+  "bottleneck": "Bottleneck Architectures"
 }
