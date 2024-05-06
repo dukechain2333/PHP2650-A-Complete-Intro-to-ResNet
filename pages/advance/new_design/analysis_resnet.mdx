@@ -1,0 +1,43 @@
+# Analysis of Deep Residual Networks
+
+Recall that the residual block is defined as:
+$$
+y_l = h(x_l) + \mathcal{F}(x_l, W_l) \\
+x_{l+1} = f(y_l)
+$$
+Here $x_l$ is the input feature to the l-th Residual Unit. $W_l = \{W_{l,k} |_{1 \le k \le K}\}$ is a set of weights (and biases) associated with
+the l-th Residual Unit, and $K$ is the number of layers in a Residual Unit. $\mathcal{F}$ denotes the residual function,
+e.g., a stack of two 3×3 convolutional layers in. The function $f$ is the operation after element-wise addition, and in $f$ is ReLU.
+The function $h$ is set as an identity mapping: $h(x_l) = x_l$.
+
+If $f$ is an identity mapping: $x_{l+1} = y_l$, then we can have:
+$$
+x_{l+1} = x_l + \mathcal{F}(x_l, W_l)
+$$
+and if we generalize this to $L$ layers, we have:
+$$
+x_L = x_l + \sum_{i=l}^{L-1} \mathcal{F}(x_i, W_i)
+$$
+
+This generalized equation has those properties:
+- The feature $x_L$ of any deeper unit $L$ can be represented as the feature $x_l$ of any shallower unit $l$ plus a residual
+function in a form of $\sum_{i=1}^{L-1}\mathcal{F}$
+- The feature $x_L = x_0 + \sum_{i=0}^{L-1}\mathcal{F}(x_i, W_i)$, of any deep unit $L$, is the summation of the outputs of
+all preceding residual functions.
+
+And with this equation, we can also have a nice backward propagation property:
+$$
+\frac{\partial \varepsilon}{\partial x_l} = \frac{\partial \varepsilon}{\partial x_L} \frac{\partial x_L}{\partial x_l} = \frac{\partial \varepsilon}{\partial x_L} \left(1 + \frac{\partial}{\partial x_l} \sum_{i=0}^{L-1}\mathcal{F}(x_i, W_i)\right)
+$$
+This suggests that the gradient can be decomposed into two parts:
+- a term of $\frac{\partial \varepsilon}{\partial x_L}$ that propagates information directly without concerning any weight layers, ensures that information is directly propagated back to any shallower unit $l$
+- a term of $\frac{\partial \varepsilon}{\partial x_L}(\frac{\partial}{\partial x_l} \sum_{i=0}^{L-1}\mathcal{F}(x_i, W_i))$ that propagates through the weight layers.
+
+Note that **the gradient is not likely to vanish, as the term $\frac{\partial}{\partial x_l} \sum_{i=0}^{L-1}\mathcal{F}(x_i, W_i)$ is not likely to always be -1**, which is a very good attribute.
+
+Those equations suggest that the signal can be directly propagated from any unit to another, both forward and backward.
+Actually, two important conditions are required to ensure the above properties:
+- the identity skip connection $h(x_l) = x_l$
+- f is an identity mapping (Relu in this case)
+
+In the next chapters, we will dive deeper into those two conditions.

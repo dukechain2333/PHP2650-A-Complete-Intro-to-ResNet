@@ -1,0 +1,60 @@
+import Image from 'next/image'
+
+# Usage of Activation Functions
+
+Next, we will examine the impact of $f$ function. We want to make f an identity mapping, which is done by re-arranging
+the activation functions (ReLU and/or BN). Several networks are built as follows:
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/usage-activation.png" alt="usage-activation" width={1000} height={800}/>
+</div>
+
+The results are shown below:
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/usage-activation-result.png" alt="usage-activation-result" width={1000} height={800}/>
+</div>
+
+Somehow surprisingly, when BN and ReLU are both used as pre-activation, the results are improved by healthy margins.
+This design brings two benefits.
+
+The first benefit is that this design can **ease the optimization**. As we can see in the following picture, the curve of the
+proposed model converges faster than the original model.
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/usage-activation-opt.png" alt="usage-activation-opt" width={1000} height={800}/>
+</div>
+
+The second advantage is its potential to **reduce overfitting**. As depicted, the pre-activation model achieves a
+marginally higher training loss upon convergence but exhibits a lower test error. This improvement is attributed to the
+regularization effect of Batch Normalization (BN). In the original model, even though BN normalizes the signal,
+it is immediately combined with the shortcut, resulting in a non-normalized merged signal. This non-normalized signal then serves
+as the input for the subsequent weight layer. In contrast, in the pre-activation model, the inputs to all weight layers are normalized.
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/usage-activation-opt2.png" alt="usage-activation-opt2" width={1000} height={800}/>
+</div>

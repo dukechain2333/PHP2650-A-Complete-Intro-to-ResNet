@@ -1,0 +1,50 @@
+import Image from 'next/image'
+
+# Importance of Identity Skip Connections
+
+First of all, let's see the importance of identity skip connections.
+To do that, we will propose a different architecture that does not have identity skip connections.
+
+We modify our residual block as follows:
+$$
+x_{l+1} = \lambda_l x_l + \mathcal{F}(x_l, W_l)
+$$
+where $\lambda_l$ is a modulating factor, while keeping $f$ is identity function.
+
+Then, we will obtain a generalized function of:
+$$
+x_L = (\prod_{i=l}^{L-1} \lambda_i) x_l + \sum_{i=l}^{L-1} \hat{\mathcal{F}}(x_i, W_i)
+$$
+where $\hat{\mathcal{F}}$ absorbs the scalers into the residual functions, the gradient function is also known:
+$$
+\frac{\partial \varepsilon}{\partial x_l} = \frac{\partial \varepsilon}{\partial x_L} ((\prod_{i=l}^{L-1} \lambda_i)+ \frac{\partial}{\partial x_l} \sum_{i=l}^{L-1} \hat{\mathcal{F}}(x_i, W_i))
+$$
+We can easily find that the term $\prod_{i=l}^{L-1} \lambda_i$ can be very small or very large, which can cause the gradient to vanish or explode.
+
+To better find out the importance of identity skip connections,  following networks are build to compare the performance on CIFAR-10 dataset:
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/identity_importance-network.png" alt="identity_importance-network" width={1000} height={800}/>
+</div>
+
+Results are shown below:
+
+<div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 10,
+    marginBottom: 10
+}}>
+    <Image src="/identity_importance_result.png" alt="identity-importance-result" width={1000} height={800}/>
+</div>
+
+We can tell from the result table that some of the models did not converge. And among the converged models, the original model has the best performance.
+This indicates that the shortcut connections are the most direct paths for the information to propagate. Multiplicative manipulations
+(scaling, gating, 1 × 1 convolutions, and dropout) on the shortcuts can hamper information propagation and lead to optimization problems.
