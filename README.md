@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 ![cover](/public/cover.png)
 
 # A Complete Introduction to ResNet
