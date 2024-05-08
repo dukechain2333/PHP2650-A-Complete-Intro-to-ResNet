@@ -105,6 +105,16 @@ for epoch in range(100):
     print(f'Epoch {epoch+1}, Training Loss: {avg_train_loss}, Validation Loss: {avg_val_loss}')
 ```
 
+<div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: 10,
+            marginBottom: 10
+        }}>
+            <Image src="/train-val-loss.jpg" alt="train-val-loss" width={1000} height={800}/>
+</div>
+
 ## Evaluating the Model
 
 This step is used to evaluate the model's performance on the test dataset. The model is set to evaluation mode, and the gradients are turned off.
